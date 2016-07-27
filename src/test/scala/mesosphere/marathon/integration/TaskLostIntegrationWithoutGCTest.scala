@@ -24,18 +24,22 @@ class TaskLostIntegrationWithoutGCTest extends IntegrationFunSuite with WithMeso
     Given("a new app")
     val appId = testBasePath / "app"
     val app = appProxy(appId, "v1", instances = 2, withHealth = false).copy(
+      cmd = Some("sleep 1000"),
       constraints = Set(
         // make sure each agent runs one task so that no task is launched after one agent goes down
         Protos.Constraint.newBuilder().setField("hostname").setOperator(Operator.UNIQUE).build())
     )
     marathon.createAppV2(app)
-    waitForEvent("deployment_success")
-    val task = waitForTasks(app.id, 2).head
 
-    And("all tasks are running")
+    When("the deployment is finished")
+    waitForEvent("deployment_success")
     val tasks0 = waitForTasks(app.id, 2)
+
+    Then("there are 2 running tasks on 2 agents")
     tasks0 should have size 2
     tasks0.forall(_.state == "TASK_RUNNING") shouldBe true
+    val task = tasks0.find(_.host == slave1).getOrElse(fail("no task was started on slave1"))
+    tasks0.find(_.host == slave2).getOrElse(fail("no task was started on slave2"))
 
     When("We stop one agent, one task is declared lost")
     stopMesos(slave1)

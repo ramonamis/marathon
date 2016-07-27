@@ -165,6 +165,40 @@ class ScalingPropositionTest extends FunSuite with Matchers {
     proposition.tasksToStart shouldBe empty
   }
 
+  test("Order of tasks to kill: running and lost") {
+    val runningTask = createTask(2)
+    val lostTask = createLostTask(1)
+
+    val proposition = ScalingProposition.propose(
+      runningTasks = Iterable(runningTask, lostTask),
+      toKill = None,
+      meetConstraints = killToMeetConstraints(),
+      scaleTo = 1
+    )
+
+    proposition.tasksToKill shouldBe defined
+    proposition.tasksToKill.get should have size 1
+    proposition.tasksToKill.get shouldEqual Seq(lostTask)
+    proposition.tasksToStart shouldBe empty
+  }
+
+  test("Order of tasks to kill: lost and running") {
+    val runningTask = createTask(2)
+    val lostTask = createLostTask(1)
+
+    val proposition = ScalingProposition.propose(
+      runningTasks = Iterable(lostTask, runningTask),
+      toKill = None,
+      meetConstraints = killToMeetConstraints(),
+      scaleTo = 1
+    )
+
+    proposition.tasksToKill shouldBe defined
+    proposition.tasksToKill.get should have size 1
+    proposition.tasksToKill.get shouldEqual Seq(lostTask)
+    proposition.tasksToStart shouldBe empty
+  }
+
   // Helper functions
 
   private def createTask(index: Long) = MarathonTestHelper.runningTask(s"task-$index", appVersion = Timestamp(index), startedAt = Timestamp.now().+(index.hours).toDateTime.getMillis)
