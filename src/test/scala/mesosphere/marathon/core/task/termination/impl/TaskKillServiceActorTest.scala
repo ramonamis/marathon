@@ -17,6 +17,7 @@ import org.mockito.ArgumentCaptor
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.time.{ Millis, Span }
 import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach, FunSuiteLike, GivenWhenThen, Matchers }
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -32,6 +33,8 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
     with Eventually
     with ImplicitSender
     with Mockito {
+
+  import TaskKillServiceActorTest.log
 
   test("Kill single known task") {
     val f = new Fixture
@@ -219,12 +222,9 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
     f.publishStatusUpdate(task2.taskId, mesos.Protos.TaskState.TASK_KILLED)
     f.publishStatusUpdate(task3.taskId, mesos.Protos.TaskState.TASK_KILLED)
 
-    Then("the promises are eventually completed successfully")
-    eventually(promise1.isCompleted)
+    Then("the promises are eventually are completed successfully")
     promise1.future.futureValue should be (Done)
-    eventually(promise2.isCompleted)
     promise2.future.futureValue should be (Done)
-    eventually(promise3.isCompleted)
     promise3.future.futureValue should be (Done)
   }
 
@@ -340,7 +340,7 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
     }
   }
 
-  override implicit def patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(1000, Millis)))
+  override implicit def patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(2000, Millis)))
 
   class Fixture {
     import scala.concurrent.duration._
@@ -394,11 +394,13 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
           slaveId = "", taskId = taskId, taskStatus = state.toString, message = "", appId = appId, host = "",
           ipAddresses = None, ports = Nil, version = "version"
         )
+      log.info("publish {} on the event stream", statusUpdateEvent)
       system.eventStream.publish(statusUpdateEvent)
     }
   }
 }
 
 object TaskKillServiceActorTest {
+  val log = LoggerFactory.getLogger(getClass)
   var actor: Option[ActorRef] = None
 }
