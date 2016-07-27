@@ -14,7 +14,7 @@ import mesosphere.marathon.test.Mockito
 import org.apache.mesos
 import org.apache.mesos.SchedulerDriver
 import org.mockito.ArgumentCaptor
-import org.scalatest.concurrent.{ Eventually, ScalaFutures }
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{ Millis, Span }
 import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach, FunSuiteLike, GivenWhenThen, Matchers }
 import org.slf4j.LoggerFactory
@@ -30,7 +30,6 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
     with GivenWhenThen
     with ScalaFutures
     with Matchers
-    with Eventually
     with ImplicitSender
     with Mockito {
 
@@ -54,7 +53,6 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
     f.publishStatusUpdate(task.taskId, mesos.Protos.TaskState.TASK_KILLED)
 
     Then("the promise is eventually completed successfully")
-    eventually(promise.isCompleted)
     promise.future.futureValue should be (Done)
   }
 
@@ -82,7 +80,6 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
     f.publishStatusUpdate(task.taskId, mesos.Protos.TaskState.TASK_KILLED)
 
     Then("the promise is eventually completed successfully")
-    eventually(promise.isCompleted)
     promise.future.futureValue should be (Done)
   }
 
@@ -110,7 +107,6 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
     f.publishStatusUpdate(taskId, mesos.Protos.TaskState.TASK_KILLED)
 
     Then("the promise is eventually completed successfully")
-    eventually(promise.isCompleted)
     promise.future.futureValue should be (Done)
   }
 
@@ -135,7 +131,6 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
     f.publishStatusUpdate(task.taskId, mesos.Protos.TaskState.TASK_KILLED)
 
     Then("the promise is eventually completed successfully")
-    eventually(promise.isCompleted)
     promise.future.futureValue should be (Done)
   }
 
@@ -167,7 +162,6 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
     f.publishStatusUpdate(stagingTask.taskId, mesos.Protos.TaskState.TASK_LOST)
 
     Then("the promise is eventually completed successfully")
-    eventually(promise.isCompleted)
     promise.future.futureValue should be (Done)
   }
 
@@ -183,7 +177,6 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
     actor ! TaskKillServiceActor.KillTasks(emptyList, promise)
 
     Then("the promise is eventually completed successfully")
-    eventually(promise.isCompleted)
     promise.future.futureValue should be (Done)
 
     And("the task tracker is not queried")
@@ -321,7 +314,6 @@ class TaskKillServiceActorTest extends TestKit(ActorSystem("test"))
     f.publishStatusUpdate(task.taskId, mesos.Protos.TaskState.TASK_KILLED)
 
     Then("the promise is eventually completed successfully")
-    eventually(promise.isCompleted)
     promise.future.futureValue should be (Done)
   }
 
